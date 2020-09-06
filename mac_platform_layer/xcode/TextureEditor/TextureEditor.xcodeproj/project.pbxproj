@@ -1,0 +1,120 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		AC5C5C0F23D378DE009C44E5 /* TextureEditor */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = AC5C5C1023D378DE009C44E5 /* Build configuration list for PBXAggregateTarget "TextureEditor" */;
+			buildPhases = (
+			);
+			dependencies = (
+			);
+			name = TextureEditor;
+			productName = TextureEditor;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXFileReference section */
+		AC5C5C1323D37929009C44E5 /* osx_main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = osx_main.mm; path = ../../osx_main.mm; sourceTree = "<group>"; };
+		ACA78EA823DE5C99003B346B /* texture_editor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = texture_editor.cpp; path = ../../../cross_platform/texture_editor.cpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		AC5C5C0823D378D1009C44E5 = {
+			isa = PBXGroup;
+			children = (
+				AC5C5C1323D37929009C44E5 /* osx_main.mm */,
+				ACA78EA823DE5C99003B346B /* texture_editor.cpp */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		AC5C5C0923D378D1009C44E5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1030;
+				TargetAttributes = {
+					AC5C5C0F23D378DE009C44E5 = {
+						CreatedOnToolsVersion = 10.3;
+					};
+				};
+			};
+			buildConfigurationList = AC5C5C0C23D378D1009C44E5 /* Build configuration list for PBXProject "TextureEditor" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = AC5C5C0823D378D1009C44E5;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AC5C5C0F23D378DE009C44E5 /* TextureEditor */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		AC5C5C0D23D378D1009C44E5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		AC5C5C0E23D378D1009C44E5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+		AC5C5C1123D378DE009C44E5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = N79LQXAXD6;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		AC5C5C1223D378DE009C44E5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = N79LQXAXD6;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AC5C5C0C23D378D1009C44E5 /* Build configuration list for PBXProject "TextureEditor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC5C5C0D23D378D1009C44E5 /* Debug */,
+				AC5C5C0E23D378D1009C44E5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AC5C5C1023D378DE009C44E5 /* Build configuration list for PBXAggregateTarget "TextureEditor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC5C5C1123D378DE009C44E5 /* Debug */,
+				AC5C5C1223D378DE009C44E5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AC5C5C0923D378D1009C44E5 /* Project object */;
+}
