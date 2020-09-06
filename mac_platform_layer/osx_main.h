@@ -1,6 +1,6 @@
 /*
 
-   Platform Game Texture Editor
+   Handmade Texture Editor
    2020 Ted Bendixson
    Mooselutions, LLC
 
@@ -68,5 +68,22 @@ struct mac_game_controller
 
     bool32 ButtonStartState;
     bool32 ButtonSelectState;
+};
+
+#define MAC_MAX_FILENAME_SIZE 4096
+
+struct mac_app_path
+{
+    char Filename[MAC_MAX_FILENAME_SIZE];
+    char *OnePastLastAppFileNameSlash;
+};
+
+struct mac_state
+{
+    mac_app_path *Path;
+
+	char ResourcesDirectory[MAC_MAX_FILENAME_SIZE];
+	int ResourcesDirectorySize;
+
 };
 

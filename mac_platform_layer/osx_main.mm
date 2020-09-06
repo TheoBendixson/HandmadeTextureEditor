@@ -1,9 +1,10 @@
 /*
 
-    Platformer Texture Editor Mac Platform Layer
+    Texture Editor Mac Platform Layer
     2020 TedBendixson
     Mooselutions, LLC
 
+    Use this as a reference for your own texture editor tool.
 */
 
 #import <AppKit/AppKit.h>
@@ -20,12 +21,36 @@
 
 #include "../cross_platform/texture_editor_types.h"
 #include "../cross_platform/texture_editor.cpp"
+#include "../cross_platform/texture_editor_strings.h"
 
-#include "../../common/platformer_strings.h"
-#include "../../common/mac_platform/mac_file.h"
 #include "osx_main.h"
 
 global_variable MTKView *MetalKitView;
+
+void
+MacBuildAppFilePath(mac_app_path *Path)
+{
+	uint32 buffsize = sizeof(Path->Filename);
+    if (_NSGetExecutablePath(Path->Filename, &buffsize) == 0) {
+		for(char *Scan = Path->Filename;
+			*Scan;
+			++Scan)
+		{
+			if(*Scan == '/')
+			{
+				Path->OnePastLastAppFileNameSlash = Scan + 1;
+			}
+		}
+    }
+}
+
+void
+MacBuildAppPathFileName(mac_app_path *Path, char *Filename, int DestCount, char *Dest)
+{
+	CatStrings(Path->OnePastLastAppFileNameSlash - Path->Filename, Path->Filename,
+			   StringLength(Filename), Filename,
+			   DestCount, Dest);
+}
 
 #if INTERNAL
 void PlatformFreeFileMemory(void *Memory)

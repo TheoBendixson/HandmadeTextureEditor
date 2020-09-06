@@ -10,7 +10,7 @@
 
 #define Assert(Expression) if(!(Expression)) { __builtin_trap(); }
 
-#include "../../common/memory_arena.h"
+#include "memory_arena.h"
 
 struct read_file_result 
 {

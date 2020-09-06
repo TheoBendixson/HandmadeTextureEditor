@@ -3,11 +3,10 @@ echo Building Texture Editor
 mkdir ../build
 pushd ../build
 
-COMMON_MAC_CODE_PATH="../../common/mac_platform"
 MAC_PLATFORM_LAYER_PATH="../mac_platform_layer"
 
 echo Compiling Shader Libraries
-xcrun -sdk macosx metal -c "${COMMON_MAC_CODE_PATH}/FlatColorShaders.metal" -o ColorShaders.air
+xcrun -sdk macosx metal -c "${MAC_PLATFORM_LAYER_PATH}/FlatColorShaders.metal" -o ColorShaders.air
 xcrun -sdk macosx metallib ColorShaders.air -o ColorShaders.metallib
 
 xcrun -sdk macosx metal -c "${MAC_PLATFORM_LAYER_PATH}/TextureShader.metal" -o TextureShader.air
