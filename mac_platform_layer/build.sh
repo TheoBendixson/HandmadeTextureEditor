@@ -16,6 +16,7 @@ COMPILER_WARNING_FLAGS="-Werror -Weverything"
 
 DISABLED_ERRORS="-Wno-gnu-anonymous-struct 
                  -Wno-c++11-compat-deprecated-writable-strings                
+                 -Wno-poison-system-directories
                  -Wno-cast-qual
                  -Wno-missing-braces                
                  -Wno-pedantic
