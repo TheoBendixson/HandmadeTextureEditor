@@ -314,10 +314,15 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
          GameController->Select.EndedDown) &&
          EditorState->ActionSlopFrames == 0)
     {
-        read_file_result ReadResult = PlatformOpenFileDialog();
+        PlatformOpenFileDialog(Memory->TransientStorage);
+        EditorState->ActionSlopFrames = ActionPauseFrames;
+    }
 
-        char *Scan = ReadResult.Filename; 
-
+    read_file_result *FileDialogResult = (read_file_result *)Memory->TransientStorage;
+   
+    if (FileDialogResult->ContentsSize > 0)
+    {
+        char *Scan = FileDialogResult->Filename; 
         texture_file_type FileType = TextureFileTypeUnknown;
 
         while(Scan++)
@@ -341,9 +346,9 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
             }
         }
 
-        if (ReadResult.ContentsSize > 0 && FileType == TextureFileTypeNoHeader)
+        if (FileType == TextureFileTypeNoHeader)
         {
-            uint32 *PixelBufferSource = (uint32 *)ReadResult.Contents;
+            uint32 *PixelBufferSource = (uint32 *)FileDialogResult->Contents;
             uint32 *PixelBufferDest = (uint32 *)EditorState->PixelBuffer.Pixels;
 
             uint32 PixelCount = RenderCommands->PreviewTextureWidth*RenderCommands->PreviewTextureHeight;
@@ -353,10 +358,10 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
                 *PixelBufferDest++ = *PixelBufferSource++;
             }
 
-        } else if (ReadResult.ContentsSize > 0 && FileType == TextureFileTypeWidthHeight)
+        } else if (FileType == TextureFileTypeWidthHeight)
         {
-            texture_file_header *FileHeader = (texture_file_header *)ReadResult.Contents;
-            uint8 *BaseTextureData = (uint8 *)ReadResult.Contents;
+            texture_file_header *FileHeader = (texture_file_header *)FileDialogResult->Contents;
+            uint8 *BaseTextureData = (uint8 *)FileDialogResult->Contents;
 
             InitializePixelBufferAndPreviewTexture(Memory, EditorState, RenderCommands,
                                                    FileHeader->TextureWidth, FileHeader->TextureHeight);
@@ -372,10 +377,10 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
             }
         } 
 
-        PlatformFreeFileMemory(ReadResult.Contents);
-        PlatformFreeFileMemory(ReadResult.Filename);
+        PlatformFreeFileMemory(FileDialogResult->Contents);
+        PlatformFreeFileMemory(FileDialogResult->Filename);
 
-        EditorState->ActionSlopFrames = ActionPauseFrames;
+        FileDialogResult->ContentsSize = 0;
     }
 
     if ((Keyboard->A.EndedDown || 

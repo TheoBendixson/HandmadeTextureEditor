@@ -19,7 +19,7 @@ struct read_file_result
     char *Filename;
 };
 
-read_file_result PlatformOpenFileDialog();
+void PlatformOpenFileDialog(void *TransientStorage);
 
 void PlatformFreeFileMemory(void *Memory);
 read_file_result PlatformReadEntireFile(char *Filename);
@@ -38,6 +38,9 @@ struct texture_editor_memory
     uint64 PermanentStorageSize;
     // NOTE: (Ted)  This must be cleared to zero at startup!!!
     void *PermanentStorage;
+
+    uint64 TransientStorageSize;
+    void *TransientStorage;
 };
 
 #include "texture_editor_input.h"

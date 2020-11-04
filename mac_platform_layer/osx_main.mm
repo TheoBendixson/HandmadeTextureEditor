@@ -140,167 +140,6 @@ char * ConvertAbsoluteURLToFileURL(NSURL *FileURL)
 
 }
 
-read_file_result PlatformOpenFileDialog()
-{
-    read_file_result Result = {};
-
-    @autoreleasepool
-    {
-        NSOpenPanel *OpenPanel = [[[NSOpenPanel alloc] init] autorelease];
-        OpenPanel.canChooseFiles = true;
-        OpenPanel.canChooseDirectories = true;
-        OpenPanel.allowsMultipleSelection = false;
-
-        if ([OpenPanel runModal] == NSModalResponseOK)
-        {
-            NSURL *FileURL = [[OpenPanel URLs] objectAtIndex: 0];
-            char *LocalFilename = ConvertAbsoluteURLToFileURL(FileURL);
-            Result = MacReadEntireFileFromDialog(LocalFilename);
-        }
-    }
-
-    return (Result);
-}
-
-read_file_result PlatformReadEntireFile(char *Filename)
-{
-    read_file_result Result = {};
-    Result.Filename = Filename;
-
-    mac_app_path Path = {};
-    MacBuildAppFilePath(&Path);
-
-    char SandboxFilename[MAC_MAX_FILENAME_SIZE];
-    char LocalFilename[MAC_MAX_FILENAME_SIZE];
-    sprintf(LocalFilename, "Contents/Resources/%s", Filename);
-    MacBuildAppPathFileName(&Path, LocalFilename,
-                            sizeof(SandboxFilename), SandboxFilename);
-
-    FILE *FileHandle = fopen(SandboxFilename, "r+");
-
-    if(FileHandle != NULL)
-    {
-		fseek(FileHandle, 0, SEEK_END);
-		uint64 FileSize = ftell(FileHandle);
-        if(FileSize)
-        {
-        	rewind(FileHandle);
-        	Result.Contents = malloc(FileSize);
-            if(Result.Contents)
-            {
-                uint64 BytesRead = fread(Result.Contents, 1, FileSize, FileHandle);
-                if(FileSize == BytesRead)
-                {
-                    Result.ContentsSize = FileSize;
-                }
-                else
-                {                    
-                    NSLog(@"Failed to read a file from the file system. The file size did not match.");
-                    PlatformFreeFileMemory(Result.Contents);
-                    Result.Contents = 0;
-                }
-            }
-            else
-            {
-                NSLog(@"Failed to read a file from the file system. Zero contents.");
-            }
-        }
-        else
-        {
-            NSLog(@"Failed to read a file from the file system. No file size.");
-        }
-
-        fclose(FileHandle);
-    }
-    else
-    {
-        NSLog(@"Failed to read a file from the file system. File Handle is Null.");
-    }
-
-    return(Result);
-}
-
-@interface TextureEditorSavePanelDelegate: NSObject<NSOpenSavePanelDelegate>
-@end
-
-@implementation TextureEditorSavePanelDelegate 
-
-- (BOOL)panel:(id)sender shouldEnableURL:(NSURL *)url {
-    return true;
-}
-
-@end
-
-bool32 PlatformWriteEntireFile(uint64 FileSize, void *Memory)
-{
-    bool32 Result = false;
-
-    @autoreleasepool
-    {
-        NSSavePanel *SavePanel = [[[NSSavePanel alloc] init] autorelease];
-
-        TextureEditorSavePanelDelegate  *SavePanelDelegate = [[[TextureEditorSavePanelDelegate alloc] init] autorelease];
-        [SavePanel setDelegate: SavePanelDelegate];
-        SavePanel.title = @"Save Game Texture";
-        SavePanel.prompt = @"Save";
-        SavePanel.canCreateDirectories = true;
-
-        if ([SavePanel runModal] == NSModalResponseOK)
-        {
-            NSMutableString * FilePath = [[SavePanel.URL absoluteString] mutableCopy];
-            [FilePath replaceOccurrencesOfString: @"file://" 
-                                      withString:@""
-                                         options: NSCaseInsensitiveSearch
-                                           range: NSMakeRange(0,7)]; 
-
-            char *LocalFilename = (char *)[FilePath cStringUsingEncoding: NSUTF8StringEncoding];
-
-            FILE *FileHandle = fopen(LocalFilename, "w");
-
-            if(FileHandle)
-            {
-                size_t BytesWritten = fwrite(Memory, 1, FileSize, FileHandle);
-                if(BytesWritten)
-                {
-                    Result = (BytesWritten == FileSize);
-                }
-                else
-                {
-                    NSLog(@"No bytes written to the file system.");
-                }
-
-                fclose(FileHandle);
-            }
-            else
-            {
-                NSLog(@"No file written. Unable to obtain file handle");
-            }
-
-        } else
-        {
-            Result = false;
-        }
-
-    }
-
-    return(Result);
-}
-
-#endif
-
-
-@interface MainWindowDelegate: NSObject<NSWindowDelegate>
-@end
-
-@implementation MainWindowDelegate 
-
-- (void)windowWillClose:(id)sender 
-{
-    [NSApp performSelector: @selector(terminate:) withObject: nil afterDelay: 0.0];
-}
-
-@end
-
 @interface TextureEditorWindow: NSWindow
 
 -(void) setKeyboardInputPtr:(texture_editor_keyboard_input *)KeyboardInputPtr;
@@ -510,6 +349,173 @@ bool32 PlatformWriteEntireFile(uint64 FileSize, void *Memory)
 }
 
 @end
+
+global_variable TextureEditorWindow *Window;
+
+void 
+PlatformOpenFileDialog(void *TransientStorage)
+{
+    read_file_result *ReadFileResult = (read_file_result *)TransientStorage;
+    ReadFileResult->ContentsSize = 0;
+
+    @autoreleasepool
+    {
+        NSOpenPanel *OpenPanel = [[[NSOpenPanel alloc] init] autorelease];
+        OpenPanel.canChooseFiles = true;
+        OpenPanel.canChooseDirectories = true;
+        OpenPanel.allowsMultipleSelection = false;
+
+        [OpenPanel beginSheetModalForWindow: Window
+                   completionHandler: ^(NSModalResponse result) {
+            if (result == NSModalResponseOK)
+            {
+                NSURL *FileURL = [[OpenPanel URLs] objectAtIndex: 0];
+                char *LocalFilename = ConvertAbsoluteURLToFileURL(FileURL);
+                *ReadFileResult = MacReadEntireFileFromDialog(LocalFilename);
+            }
+        }];
+    }
+}
+
+read_file_result PlatformReadEntireFile(char *Filename)
+{
+    read_file_result Result = {};
+    Result.Filename = Filename;
+
+    mac_app_path Path = {};
+    MacBuildAppFilePath(&Path);
+
+    char SandboxFilename[MAC_MAX_FILENAME_SIZE];
+    char LocalFilename[MAC_MAX_FILENAME_SIZE];
+    sprintf(LocalFilename, "Contents/Resources/%s", Filename);
+    MacBuildAppPathFileName(&Path, LocalFilename,
+                            sizeof(SandboxFilename), SandboxFilename);
+
+    FILE *FileHandle = fopen(SandboxFilename, "r+");
+
+    if(FileHandle != NULL)
+    {
+		fseek(FileHandle, 0, SEEK_END);
+		uint64 FileSize = ftell(FileHandle);
+        if(FileSize)
+        {
+        	rewind(FileHandle);
+        	Result.Contents = malloc(FileSize);
+            if(Result.Contents)
+            {
+                uint64 BytesRead = fread(Result.Contents, 1, FileSize, FileHandle);
+                if(FileSize == BytesRead)
+                {
+                    Result.ContentsSize = FileSize;
+                }
+                else
+                {                    
+                    NSLog(@"Failed to read a file from the file system. The file size did not match.");
+                    PlatformFreeFileMemory(Result.Contents);
+                    Result.Contents = 0;
+                }
+            }
+            else
+            {
+                NSLog(@"Failed to read a file from the file system. Zero contents.");
+            }
+        }
+        else
+        {
+            NSLog(@"Failed to read a file from the file system. No file size.");
+        }
+
+        fclose(FileHandle);
+    }
+    else
+    {
+        NSLog(@"Failed to read a file from the file system. File Handle is Null.");
+    }
+
+    return(Result);
+}
+
+@interface TextureEditorSavePanelDelegate: NSObject<NSOpenSavePanelDelegate>
+@end
+
+@implementation TextureEditorSavePanelDelegate 
+
+- (BOOL)panel:(id)sender shouldEnableURL:(NSURL *)url {
+    return true;
+}
+
+@end
+
+bool32 PlatformWriteEntireFile(uint64 FileSize, void *Memory)
+{
+    bool32 Result = false;
+
+    @autoreleasepool
+    {
+        NSSavePanel *SavePanel = [[[NSSavePanel alloc] init] autorelease];
+
+        TextureEditorSavePanelDelegate  *SavePanelDelegate = [[[TextureEditorSavePanelDelegate alloc] init] autorelease];
+        [SavePanel setDelegate: SavePanelDelegate];
+        SavePanel.title = @"Save Game Texture";
+        SavePanel.prompt = @"Save";
+        SavePanel.canCreateDirectories = true;
+
+        if ([SavePanel runModal] == NSModalResponseOK)
+        {
+            NSMutableString * FilePath = [[SavePanel.URL absoluteString] mutableCopy];
+            [FilePath replaceOccurrencesOfString: @"file://" 
+                                      withString:@""
+                                         options: NSCaseInsensitiveSearch
+                                           range: NSMakeRange(0,7)]; 
+
+            char *LocalFilename = (char *)[FilePath cStringUsingEncoding: NSUTF8StringEncoding];
+
+            FILE *FileHandle = fopen(LocalFilename, "w");
+
+            if(FileHandle)
+            {
+                size_t BytesWritten = fwrite(Memory, 1, FileSize, FileHandle);
+                if(BytesWritten)
+                {
+                    Result = (BytesWritten == FileSize);
+                }
+                else
+                {
+                    NSLog(@"No bytes written to the file system.");
+                }
+
+                fclose(FileHandle);
+            }
+            else
+            {
+                NSLog(@"No file written. Unable to obtain file handle");
+            }
+
+        } else
+        {
+            Result = false;
+        }
+
+    }
+
+    return(Result);
+}
+
+#endif
+
+
+@interface MainWindowDelegate: NSObject<NSWindowDelegate>
+@end
+
+@implementation MainWindowDelegate 
+
+- (void)windowWillClose:(id)sender 
+{
+    [NSApp performSelector: @selector(terminate:) withObject: nil afterDelay: 0.0];
+}
+
+@end
+
 
 internal void
 MacProcessGameControllerButton(texture_editor_button_state *OldState, texture_editor_button_state *NewState,
@@ -1000,6 +1006,7 @@ SetupAlphaBlendForRenderPipelineColorAttachment(MTLRenderPipelineColorAttachment
     ColorRenderBufferAttachment.destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 }
 
+
 int main(int argc, const char * argv[]) 
 {
     MainWindowDelegate *WindowDelegate = [[MainWindowDelegate alloc] init];
@@ -1018,12 +1025,12 @@ int main(int argc, const char * argv[])
                                      (ScreenRect.size.height - GlobalRenderHeight) * 0.5,
                                      GlobalRenderWidth, GlobalRenderHeight);
   
-    TextureEditorWindow  *Window = [[TextureEditorWindow alloc] 
-                                        initWithContentRect: InitialFrame
-                                                  styleMask: NSWindowStyleMaskTitled |
-                                                             NSWindowStyleMaskClosable
-                                                    backing: NSBackingStoreBuffered
-                                                      defer: NO];    
+    Window = [[TextureEditorWindow alloc] 
+                initWithContentRect: InitialFrame
+                          styleMask: NSWindowStyleMaskTitled |
+                                     NSWindowStyleMaskClosable
+                            backing: NSBackingStoreBuffered
+                              defer: NO];    
 
     [Window setBackgroundColor: NSColor.blackColor];
     [Window setTitle: @"Texture Editor"];
@@ -1192,6 +1199,20 @@ int main(int argc, const char * argv[])
 		printf("mmap error: %d  %s", errno, strerror(errno));
         [NSException raise: @"Memory Not Allocated"
                      format: @"Failed to allocate permanent storage"];
+    }
+
+    EditorMemory.TransientStorageSize = Megabytes(64);
+
+    EditorMemory.TransientStorage = mmap(BaseAddress,
+                                    EditorMemory.TransientStorageSize,
+                                    PROT_READ | PROT_WRITE,
+                                    AllocationFlags, -1, 0); 
+
+    if (EditorMemory.TransientStorage == MAP_FAILED) 
+    {
+		printf("mmap error: %d  %s", errno, strerror(errno));
+        [NSException raise: @"Memory Not Allocated"
+                     format: @"Failed to allocate transient storage"];
     }
 
     LoadTextures(&EditorMemory, &TextureBuffer);
