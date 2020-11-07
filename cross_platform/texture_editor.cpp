@@ -32,7 +32,6 @@ LoadASingleTexture(texture_editor_memory *Memory, texture_editor_texture_buffer 
     TextureBuffer->TexturesLoaded++;
 }
 
-
 // TODO: (Ted)  Actually do something here. Keeping it as a placeholder for now.
 internal void
 LoadTextures(texture_editor_memory *Memory, texture_editor_texture_buffer *TextureBuffer)
