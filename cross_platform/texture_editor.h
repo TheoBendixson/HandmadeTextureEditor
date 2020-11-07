@@ -24,6 +24,8 @@ void PlatformOpenFileDialog(void *TransientStorage);
 void PlatformFreeFileMemory(void *Memory);
 read_file_result PlatformReadEntireFile(char *Filename);
 bool32 PlatformWriteEntireFile(uint64 FileSize, void *Memory);
+uint32 PlatformQueryTextureWidth();
+uint32 PlatformQueryTextureHeight();
 
 void PlatformUpdatePreviewTextureSize(uint32 Width, uint32 Height);
 

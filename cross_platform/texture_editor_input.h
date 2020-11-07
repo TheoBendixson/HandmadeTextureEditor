@@ -52,7 +52,7 @@ struct texture_editor_keyboard_input
 {
     union
     {
-        texture_editor_key_state Keys[22];
+        texture_editor_key_state Keys[23];
         struct
         {
             texture_editor_key_state A;
@@ -77,6 +77,7 @@ struct texture_editor_keyboard_input
             texture_editor_key_state F5;
             texture_editor_key_state F6;
             texture_editor_key_state F7;
+            texture_editor_key_state F8;
             texture_editor_key_state Return;
         };
     };

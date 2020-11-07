@@ -263,6 +263,17 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
         EditorState->ActionSlopFrames = 10;
     }
 
+    if (Keyboard->F8.EndedDown &&
+        EditorState->ActionSlopFrames == 0)
+    {
+        uint32 TextureWidth = PlatformQueryTextureWidth();
+        uint32 TextureHeight = PlatformQueryTextureHeight();
+        InitializePixelBufferAndPreviewTexture(Memory, EditorState, 
+                                               RenderCommands,
+                                               TextureWidth, TextureHeight);
+        EditorState->ActionSlopFrames = 10;
+    }
+
     if ((Keyboard->P.EndedDown || 
          GameController->RightShoulder.EndedDown) &&
          EditorState->NavigationSlopFrames == 0)

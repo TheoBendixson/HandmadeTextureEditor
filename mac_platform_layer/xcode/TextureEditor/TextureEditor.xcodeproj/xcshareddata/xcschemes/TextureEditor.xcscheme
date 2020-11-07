@@ -42,7 +42,7 @@
       allowLocationSimulation = "YES">
       <PathRunnable
          runnableDebuggingMode = "0"
-         FilePath = "/Users/theodorebendixson1/AppDevelopment/PersonalProjects/GamePrototypes/Platformer/code/texture_editor/build/TextureEditor.app">
+         FilePath = "/Users/theodorebendixson1/AppDevelopment/PersonalProjects/GameTools/texture_editor/build/TextureEditor.app">
       </PathRunnable>
       <MacroExpansion>
          <BuildableReference
