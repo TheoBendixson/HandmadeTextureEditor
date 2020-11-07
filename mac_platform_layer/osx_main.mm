@@ -52,6 +52,38 @@ MacBuildAppPathFileName(mac_app_path *Path, char *Filename, int DestCount, char 
 			   DestCount, Dest);
 }
 
+internal uint32
+GetTextureDimensionFromModalAlert(NSString *AlertMessage)
+{
+    @autoreleasepool
+    {
+        NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+        [alert setMessageText: AlertMessage];
+        [alert addButtonWithTitle: @"Okay"];
+
+        NSTextField *textInput = [[[NSTextField alloc] initWithFrame: NSMakeRect(0, 0, 200, 24)] autorelease];
+        [textInput setStringValue: @""];
+        [alert setAccessoryView: textInput];
+
+        if ([alert runModal] == NSAlertFirstButtonReturn)
+        {
+            return (uint32)textInput.integerValue;
+        }
+    }
+
+    return 0;
+}
+
+uint32 PlatformQueryTextureWidth()
+{
+    return GetTextureDimensionFromModalAlert(@"Enter Texture Width:");
+}
+
+uint32 PlatformQueryTextureHeight()
+{
+    return GetTextureDimensionFromModalAlert(@"Enter Texture Height:");
+}
+
 #if INTERNAL
 void PlatformFreeFileMemory(void *Memory)
 {
@@ -246,6 +278,10 @@ char * ConvertAbsoluteURLToFileURL(NSURL *FileURL)
     {
         _KeyboardInputPtr->F7.EndedDown = true;
     }
+    else if (theEvent.keyCode == F8KeyCode)
+    {
+        _KeyboardInputPtr->F8.EndedDown = true;
+    }
     else if (theEvent.keyCode == ReturnKeyCode)
     {
         _KeyboardInputPtr->Return.EndedDown = true;
@@ -341,6 +377,10 @@ char * ConvertAbsoluteURLToFileURL(NSURL *FileURL)
     else if (theEvent.keyCode == F7KeyCode)
     {
         _KeyboardInputPtr->F7.EndedDown = false;
+    }
+    else if (theEvent.keyCode == F8KeyCode)
+    {
+        _KeyboardInputPtr->F8.EndedDown = false;
     }
     else if (theEvent.keyCode == ReturnKeyCode)
     {
@@ -718,6 +758,7 @@ static const NSUInteger kMaxInflightBuffers = 3;
 
     _KeyboardInputPtr->F1.EndedDown = false;
     _KeyboardInputPtr->F2.EndedDown = false;
+    _KeyboardInputPtr->F8.EndedDown = false;
 
     texture_editor_input *Temp = _NewInputPtr;
     _NewInputPtr = _OldInputPtr;

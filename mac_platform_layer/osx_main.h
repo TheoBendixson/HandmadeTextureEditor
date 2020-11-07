@@ -31,6 +31,7 @@ const unsigned short F4KeyCode = 0x76;
 const unsigned short F5KeyCode = 0x60;
 const unsigned short F6KeyCode = 0x61;
 const unsigned short F7KeyCode = 0x62;
+const unsigned short F8KeyCode = 0x64;
 const unsigned short ReturnKeyCode = 0x24;
 
 struct mac_game_controller
