@@ -324,11 +324,11 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
          GameController->Select.EndedDown) &&
          EditorState->ActionSlopFrames == 0)
     {
-        PlatformOpenFileDialog(Memory->TransientStorage);
+        PlatformOpenFileDialog(Memory->TransientStoragePartition.FileReadResult);
         EditorState->ActionSlopFrames = ActionPauseFrames;
     }
 
-    read_file_result *FileDialogResult = (read_file_result *)Memory->TransientStorage;
+    read_file_result *FileDialogResult = (read_file_result *)Memory->TransientStoragePartition.FileReadResult;
    
     if (FileDialogResult->ContentsSize > 0)
     {

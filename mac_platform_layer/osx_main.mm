@@ -1256,6 +1256,14 @@ int main(int argc, const char * argv[])
                      format: @"Failed to allocate transient storage"];
     }
 
+    uint64 PartitionSize = Megabytes(32);
+    texture_editor_transient_storage_partition TransientStoragePartition = {};
+    TransientStoragePartition.FileReadResultSize = PartitionSize;
+    TransientStoragePartition.FileReadResult = (uint8 *)EditorMemory.TransientStorage;
+    TransientStoragePartition.PasteBufferSize = PartitionSize;
+    TransientStoragePartition.PasteBuffer = (uint8 *)EditorMemory.TransientStorage + PartitionSize;
+    EditorMemory.TransientStoragePartition = TransientStoragePartition;
+
     LoadTextures(&EditorMemory, &TextureBuffer);
 
     ViewDelegate.EditorMemory = EditorMemory; 

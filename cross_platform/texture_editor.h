@@ -34,6 +34,15 @@ void PlatformUpdatePreviewTextureSize(uint32 Width, uint32 Height);
 #define Megabytes(Value) (Kilobytes(Value)*1024LL)
 #define Gigabytes(Value) (Megabytes(Value)*1024LL)
 
+struct texture_editor_transient_storage_partition
+{
+    uint64 FileReadResultSize;
+    uint8 *FileReadResult;
+
+    uint64 PasteBufferSize;
+    uint8* PasteBuffer;
+};
+
 struct texture_editor_memory
 {
     bool32 IsInitialized;
@@ -43,6 +52,8 @@ struct texture_editor_memory
 
     uint64 TransientStorageSize;
     void *TransientStorage;
+
+    texture_editor_transient_storage_partition TransientStoragePartition;
 };
 
 #include "texture_editor_input.h"
