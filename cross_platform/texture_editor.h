@@ -39,8 +39,8 @@ struct texture_editor_transient_storage_partition
     uint64 FileReadResultSize;
     uint8 *FileReadResult;
 
-    uint64 PasteBufferSize;
-    uint8* PasteBuffer;
+    uint64 CopyPasteBufferSize;
+    uint8* CopyPasteBuffer;
 };
 
 struct texture_editor_memory
@@ -77,6 +77,8 @@ enum preview_mode
     PreviewModeTile
 };
 
+#define COLOR_PALETTE_COUNT 2
+
 struct texture_editor_state
 {
     memory_arena TextureArena;
@@ -88,6 +90,7 @@ struct texture_editor_state
     texture_editor_selection Selection;
 
     int8 SelectedColorIndex;
+    int8 SelectedColorIndices[COLOR_PALETTE_COUNT];
 
     color_palette ColorPalette;
 
@@ -95,6 +98,5 @@ struct texture_editor_state
     uint8 NavigationSlopFrames;
 
     preview_mode PreviewMode;
-
 };
 

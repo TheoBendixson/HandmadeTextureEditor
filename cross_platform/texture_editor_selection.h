@@ -40,48 +40,58 @@ CreateInitializedSelection()
     return Selection;
 }
 
+struct pixel_buffer_draw_region
+{
+    uint32 StartPixel;
+    uint32 EndPixel;
+};
+
+internal pixel_buffer_draw_region 
+DrawRegionFromSelection(uint32 StartPixel, uint32 EndPixel)
+{
+    pixel_buffer_draw_region Result = {};
+    Result.StartPixel = 0;
+    Result.EndPixel = 0;
+
+    if (StartPixel < EndPixel)
+    {
+        Result.StartPixel = StartPixel;
+        Result.EndPixel = EndPixel;
+    } else 
+    {
+        Result.StartPixel = EndPixel;
+        Result.EndPixel = StartPixel;
+    }
+
+    return (Result);
+}
+
 internal void
 FillRectangleWithColor(texture_editor_selection *Selection, texture_editor_pixel_buffer *PixelBuffer,
                        uint32 SelectedColor)
 {
-    uint32 StartPixelY = 0;
-    uint32 EndPixelY = 0;
+    pixel_buffer_draw_region YDrawRegion = DrawRegionFromSelection(Selection->RectangleStart.Y, 
+                                                                   Selection->RectangleEnd.Y);
 
-    if (Selection->RectangleStart.Y < Selection->RectangleEnd.Y)
-    {
-        StartPixelY = Selection->RectangleStart.Y;
-        EndPixelY = Selection->RectangleEnd.Y;
-    } else 
-    {
-        StartPixelY = Selection->RectangleEnd.Y;
-        EndPixelY = Selection->RectangleStart.Y;
-    }
+    pixel_buffer_draw_region XDrawRegion = DrawRegionFromSelection(Selection->RectangleStart.X, 
+                                                                   Selection->RectangleEnd.X);
 
-    uint32 StartPixelX = 0;
-    uint32 EndPixelX = 0;
-
-    if (Selection->RectangleStart.X < Selection->RectangleEnd.X)
-    {
-        StartPixelX = Selection->RectangleStart.X;
-        EndPixelX = Selection->RectangleEnd.X;
-    } else 
-    {
-        StartPixelX = Selection->RectangleEnd.X;
-        EndPixelX = Selection->RectangleStart.X;
-    }
-
-    uint32 XDiff = EndPixelX - StartPixelX;
-    uint32 YDiff = EndPixelY - StartPixelY;
+    uint32 XDiff = XDrawRegion.EndPixel - XDrawRegion.StartPixel;
+    uint32 YDiff = YDrawRegion.EndPixel - YDrawRegion.StartPixel;
 
     uint32 *PixelRow = PixelBuffer->Pixels;
-    PixelRow += PixelBuffer->Width*StartPixelY;
+    PixelRow += PixelBuffer->Width*YDrawRegion.StartPixel;
 
-    for (uint32 RowIteration = 0; YDiff >= RowIteration ; RowIteration++)
+    for (uint32 RowIteration = 0; 
+         YDiff >= RowIteration; 
+         RowIteration++)
     {
         uint32 *Pixel = PixelRow;
-        Pixel += StartPixelX;
+        Pixel += XDrawRegion.StartPixel;
 
-        for (uint32 ColumnIteration = 0; XDiff >= ColumnIteration; ColumnIteration++)
+        for (uint32 ColumnIteration = 0; 
+             XDiff >= ColumnIteration; 
+             ColumnIteration++)
         {
             *Pixel++ = SelectedColor;
         }

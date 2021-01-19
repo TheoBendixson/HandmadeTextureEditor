@@ -10,6 +10,9 @@
 
 #include "texture_editor_math.h"
 #include "texture_editor.h"
+#include "texture_editor_texture_loading.h"
+#include "texture_editor_pixel.cpp"
+#include "texture_editor_copy_paste.h"
 
 // TODO: (Ted)  
 //              1.  Grid Mode.
@@ -20,17 +23,6 @@
 //      
 //              In all likelihood, this will load entire texture packs and not just a single texture
 //              since that is more efficient.
-internal void
-LoadASingleTexture(texture_editor_memory *Memory, texture_editor_texture_buffer *TextureBuffer, 
-                   char *TextureName)
-{
-    read_file_result ReadResult = PlatformReadEntireFile(TextureName);
-    texture_editor_texture Texture = {};
-    Texture.Data = (uint32 *)ReadResult.Contents;
-    uint32 TexturesLoaded = TextureBuffer->TexturesLoaded;
-    TextureBuffer->Textures[TexturesLoaded] = Texture; 
-    TextureBuffer->TexturesLoaded++;
-}
 
 // TODO: (Ted)  Actually do something here. Keeping it as a placeholder for now.
 internal void
@@ -39,32 +31,6 @@ LoadTextures(texture_editor_memory *Memory, texture_editor_texture_buffer *Textu
 
 }
 
-internal void
-InitializePixelBufferAndPreviewTexture(texture_editor_memory *Memory, texture_editor_state *EditorState,
-                                       texture_editor_render_commands *RenderCommands,
-                                       uint32 Width, uint32 Height)
-{
-    InitializeArena(&EditorState->TextureArena, Memory->PermanentStorageSize - sizeof(texture_editor_state),
-                    (uint8*)Memory->PermanentStorage + sizeof(texture_editor_state));
-
-    texture_editor_pixel_buffer PixelBuffer = {};
-    PixelBuffer.Width = Width; 
-    PixelBuffer.Height = Height; 
-    uint32 PixelArraySize = PixelBuffer.Width*PixelBuffer.Height;
-    PixelBuffer.Pixels = (uint32 *)PushArray(&EditorState->TextureArena, PixelArraySize, uint32);
-
-    uint32 PixelBufferSize = PixelBuffer.Width*PixelBuffer.Height*sizeof(uint32); 
-    uint32 SaveFileSize = sizeof(texture_file_header) + PixelBufferSize;
-    EditorState->StartOfSaveFileSerializedData = (uint8 *)PushSize_(&EditorState->TextureArena, SaveFileSize);
-
-    FillPixelBufferWithSingleColor(&PixelBuffer, 0xFFFFFFFF);
-    EditorState->PixelBuffer = PixelBuffer;
-    EditorState->Selection = CreateInitializedSelection();
-
-    RenderCommands->PreviewTextureWidth = Width;
-    RenderCommands->PreviewTextureHeight = Height;
-    PlatformUpdatePreviewTextureSize(Width, Height);
-}
 
 internal
 void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input, 
@@ -91,6 +57,14 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
 
         EditorState->ColorPalette = GetColorPalette(ColorPaletteTypeGameboyGreyscale);
         EditorState->SelectedColorIndex = 0;
+
+        for (uint32 Index = 0;
+             Index < COLOR_PALETTE_COUNT;
+             Index++)
+        {
+            EditorState->SelectedColorIndices[Index] = 0;
+        }
+
         EditorState->PreviewMode = PreviewModeSprite;
 
         Memory->IsInitialized = true;
@@ -101,6 +75,7 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
 
     uint8 NavigationPauseFrames = 8;
 
+// MARK: Move Left One Pixel
     if((Keyboard->L.EndedDown || 
         Keyboard->RightArrow.EndedDown ||
         GameController->Right.EndedDown) && 
@@ -113,6 +88,7 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
         EditorState->NavigationSlopFrames = NavigationPauseFrames;
     }
 
+// MARK: Move Right One Pixel
     if((Keyboard->H.EndedDown || 
         Keyboard->LeftArrow.EndedDown ||
         GameController->Left.EndedDown) &&
@@ -124,6 +100,7 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
         EditorState->NavigationSlopFrames = NavigationPauseFrames;
     }
 
+// MARK: Move Up One Pixel
     if((Keyboard->K.EndedDown || 
         Keyboard->UpArrow.EndedDown ||
         GameController->Up.EndedDown) &&
@@ -135,6 +112,7 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
         EditorState->NavigationSlopFrames = NavigationPauseFrames;
     }
 
+// MARK: Move Down One Pixel
     if((Keyboard->J.EndedDown || 
         Keyboard->DownArrow.EndedDown ||
         GameController->Down.EndedDown) &&
@@ -146,16 +124,21 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
         EditorState->NavigationSlopFrames = NavigationPauseFrames;
     }
 
+// MARK: Switch Color Palettes
     if ((GameController->RightShoulder2.EndedDown ||
         (Keyboard->N.EndedDown)) &&
          EditorState->ActionSlopFrames == 0)
     {
         if (EditorState->ColorPalette.Type == ColorPaletteTypeGameboyGreyscale)
         {
-            EditorState->ColorPalette = GetColorPalette(ColorPaletteTypeZoneColors);
-        } else if (EditorState->ColorPalette.Type == ColorPaletteTypeZoneColors)
+            EditorState->SelectedColorIndices[0] = EditorState->SelectedColorIndex;
+            EditorState->ColorPalette = GetColorPalette(ColorPaletteTypePrimaryColors);
+            EditorState->SelectedColorIndex = EditorState->SelectedColorIndices[1];
+        } else if (EditorState->ColorPalette.Type == ColorPaletteTypePrimaryColors)
         {
+            EditorState->SelectedColorIndices[1] = EditorState->SelectedColorIndex;
             EditorState->ColorPalette = GetColorPalette(ColorPaletteTypeGameboyGreyscale);
+            EditorState->SelectedColorIndex = EditorState->SelectedColorIndices[0];
         }
 
         EditorState->ActionSlopFrames = 10;
@@ -183,6 +166,56 @@ void UpdateAndRender(texture_editor_memory *Memory, texture_editor_input *Input,
         }
 
         EditorState->ActionSlopFrames = 10;
+    }
+
+    // TODO: (Ted)  Implement paste.
+    if (Keyboard->Command.EndedDown &&
+        Keyboard->C.EndedDown &&
+        EditorState->ActionSlopFrames == 0)
+    {
+        if (EditorState->Selection.Mode == SelectionModeRectangle &&
+            EditorState->Selection.State == SelectionStateSelected)
+        {
+            texture_editor_copy_paste_buffer *CopyPasteBuffer = 
+            (texture_editor_copy_paste_buffer *)Memory->TransientStoragePartition.CopyPasteBuffer;
+            
+            pixel_buffer_draw_region YDrawRegion = DrawRegionFromSelection(EditorState->Selection.RectangleStart.Y, 
+                                                                           EditorState->Selection.RectangleEnd.Y);
+
+            pixel_buffer_draw_region XDrawRegion = DrawRegionFromSelection(EditorState->Selection.RectangleStart.X, 
+                                                                           EditorState->Selection.RectangleEnd.X);
+
+            uint32 XDiff = XDrawRegion.EndPixel - XDrawRegion.StartPixel;
+            CopyPasteBuffer->Width = XDiff;
+            uint32 YDiff = YDrawRegion.EndPixel - YDrawRegion.StartPixel;
+            CopyPasteBuffer->Height = YDiff;
+            
+            uint32 *SourcePixelRow = PixelBuffer->Pixels;
+            SourcePixelRow += PixelBuffer->Width*YDrawRegion.StartPixel;
+
+            uint32 *DestPixelRow = CopyPasteBuffer->Pixels;
+
+            for (uint32 RowIteration = 0; 
+                 YDiff >= RowIteration; 
+                 RowIteration++)
+            {
+                uint32 *SourcePixel = SourcePixelRow;
+                SourcePixel += XDrawRegion.StartPixel;
+
+                uint32 *DestPixel = DestPixelRow;
+
+                for (uint32 ColumnIteration = 0; 
+                     XDiff >= ColumnIteration; 
+                     ColumnIteration++)
+                {
+                    *DestPixel++ = *SourcePixel++;
+                }
+
+                SourcePixelRow += PixelBuffer->Width;
+                DestPixelRow += CopyPasteBuffer->Width;
+            }
+        } 
+
     }
 
     if (Keyboard->Return.EndedDown &&

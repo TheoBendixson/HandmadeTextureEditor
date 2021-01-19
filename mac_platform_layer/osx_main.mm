@@ -1,4 +1,4 @@
-/*
+ /*
 
     Texture Editor Mac Platform Layer
     2020 TedBendixson
@@ -285,6 +285,14 @@ char * ConvertAbsoluteURLToFileURL(NSURL *FileURL)
     else if (theEvent.keyCode == ReturnKeyCode)
     {
         _KeyboardInputPtr->Return.EndedDown = true;
+    }
+
+    if (theEvent.modifierFlags & NSEventModifierFlagCommand)
+    {
+        _KeyboardInputPtr->Command.EndedDown = true;
+    } else
+    {
+        _KeyboardInputPtr->Command.EndedDown = false;
     }
 }
 
@@ -1260,8 +1268,8 @@ int main(int argc, const char * argv[])
     texture_editor_transient_storage_partition TransientStoragePartition = {};
     TransientStoragePartition.FileReadResultSize = PartitionSize;
     TransientStoragePartition.FileReadResult = (uint8 *)EditorMemory.TransientStorage;
-    TransientStoragePartition.PasteBufferSize = PartitionSize;
-    TransientStoragePartition.PasteBuffer = (uint8 *)EditorMemory.TransientStorage + PartitionSize;
+    TransientStoragePartition.CopyPasteBufferSize = PartitionSize;
+    TransientStoragePartition.CopyPasteBuffer = (uint8 *)EditorMemory.TransientStorage + PartitionSize;
     EditorMemory.TransientStoragePartition = TransientStoragePartition;
 
     LoadTextures(&EditorMemory, &TextureBuffer);

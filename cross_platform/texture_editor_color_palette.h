@@ -10,7 +10,7 @@
 enum color_palette_type
 {
     ColorPaletteTypeGameboyGreyscale,
-    ColorPaletteTypeZoneColors,
+    ColorPaletteTypePrimaryColors,
 };
 
 struct color_palette
@@ -41,20 +41,24 @@ GetColorPalette(color_palette_type Type)
         Palette.Colors[3] = 0xFFFFFFFF;
         Palette.ColorCount = 4;
 
-    } else if (Type == ColorPaletteTypeZoneColors)
+    } else if (Type == ColorPaletteTypePrimaryColors)
     {
-        // Light Blue
+        // Blue
         Palette.Colors[0] = 0xFF83FBFF;
 
-        // Light Red
+        // Red
         Palette.Colors[1] = 0xFFFF8883;
 
-        // Light Green
+        // Green
         Palette.Colors[2] = 0xFF83FF88;
 
-        // Light Purple
+        // Purple
         Palette.Colors[3] = 0xFFFF83FB;
-        Palette.ColorCount = 4;
+
+        // Yellow
+        Palette.Colors[4] = 0xFFFFFE84;
+
+        Palette.ColorCount = 5;
     }
 
     return Palette;
