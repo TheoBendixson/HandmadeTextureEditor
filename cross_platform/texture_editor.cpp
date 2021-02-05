@@ -18,7 +18,6 @@
 //              1.  Grid Mode.
 //              2.  Move Entire Sprite Left / Right.
 
-
 // TODO: (Ted)  Have this take the width and height of the texture into account.
 //      
 //              In all likelihood, this will load entire texture packs and not just a single texture
